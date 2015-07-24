@@ -4,7 +4,7 @@ import (
 	"github.com/rubyist/circuitbreaker"
 )
 
-func tripThreshold(threshold int64, trip, fail, reset, ready, event func()) *circuit.Breaker {
+func tripThreshold(threshold int64, breaks map[string]func()) *circuit.Breaker {
 	cb := circuit.NewThresholdBreaker(threshold)
 
 	events := cb.Subscribe()
@@ -13,17 +13,23 @@ func tripThreshold(threshold int64, trip, fail, reset, ready, event func()) *cir
 			e := <-events
 			switch e {
 			case circuit.BreakerTripped:
-				trip()
+				breakMe("trip", breaks)
 			case circuit.BreakerReset:
-				reset()
+				breakMe("reset", breaks)
 			case circuit.BreakerFail:
-				fail()
+				breakMe("fail", breaks)
 			case circuit.BreakerReady:
-				ready()
+				breakMe("ready", breaks)
 			default:
-				event()
+				breakMe("event", breaks)
 			}
 		}
 	}()
 	return cb
+}
+
+func breakMe(event string, breaks map[string]func()) {
+	if callback, found := breaks[event]; found {
+		callback()
+	}
 }
