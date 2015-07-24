@@ -2,7 +2,6 @@ package tripper
 
 import (
 	"errors"
-	"log"
 	"testing"
 )
 
@@ -23,5 +22,10 @@ func TestTrip(t *testing.T) {
 			return errors.New("failed")
 		}, 0)
 	}
-	log.Fatal(failed)
+	if failed != 10 {
+		t.Errorf("expected 10 failures, got %d\n", failed)
+	}
+	if tripped != 1 {
+		t.Errorf("expected 1 trip, got %d\n", tripped)
+	}
 }
