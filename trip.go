@@ -1,13 +1,25 @@
 package tripper
 
 import (
-	"github.com/rubyist/circuitbreaker"
+	"log"
+
+	circuit "github.com/rubyist/circuitbreaker"
 )
 
-func tripThreshold(threshold int64, breaks map[string]func()) *circuit.Breaker {
-	cb := circuit.NewThresholdBreaker(threshold)
+func NewBreaker(threshold int64, breaker string, breaks map[string]func()) *circuit.Breaker {
+	var cb *circuit.Breaker
+
+	switch breaker {
+	case "threshold":
+		cb = circuit.NewThresholdBreaker(threshold)
+	case "consecutive":
+		cb = circuit.NewConsecutiveBreaker(threshold)
+	default:
+		log.Fatal("invalid breaker type")
+	}
 
 	events := cb.Subscribe()
+
 	go func() {
 		for {
 			e := <-events
